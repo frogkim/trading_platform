@@ -1,8 +1,7 @@
 TRADING PLATFORM
-
--- README.md - this document
--- TEST.md   - test library in console
--- note.txt  - collecting troubles
+    - README.md - this document
+    - TEST.md   - test library in console
+    - note.txt  - collecting troubles
 
 Target System
     - x64 Windows and Ubuntu
