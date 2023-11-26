@@ -1,0 +1,110 @@
+1. nvcc fatal : Unknown option '-fPIC'
+    - change option '-fPIC' to '-Xcompiler -fPIC'
+    - Ref: https://forums.developer.nvidia.com/t/building-a-shared-library-linux-mac-based-on-the-cuda-sdk-common-mk-file/7242
+
+2. /usr/bin/ld: cannot find -llibcuda
+    - change shared binary file's name as "lib"<name>".so", and
+    - enter the <name> in the Makefile as "-l<name>"
+
+3. sql-login
+    - first setup
+        - CREATE USER 'new_user'@'localhost' IDENTIFIED BY 'password';
+        - GRANT ALL PRIVILEGES ON * . * TO 'new_user'@'localhost';
+        - FLUSH PRIVILEGES;
+    
+4. ssl keys
+    - view ssl detail: openssl x509 -text -noout -in <filename>
+
+    - ca certificate
+    - server-key.pem
+    - server-cert.pem
+
+    - https://dev.mysql.com/doc/refman/8.0/en/creating-ssl-files-using-openssl.html
+
+###################################################################################    
+# Create clean environment
+rm -rf newcerts
+mkdir newcerts && cd newcerts
+
+# Create CA certificate
+openssl genrsa 2048 > ca-key.pem
+openssl req -new -x509 -nodes -days 3600 -key ca-key.pem -out ca.pem
+
+# Create server certificate, remove passphrase, and sign it
+# server-cert.pem = public key, server-key.pem = private key
+openssl req -newkey rsa:2048 -days 3600 -nodes -keyout server-key.pem -out server-req.pem
+openssl rsa -in server-key.pem -out server-key.pem
+openssl x509 -req -in server-req.pem -days 3600 -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out server-cert.pem
+
+# Create client certificate, remove passphrase, and sign it
+# client-cert.pem = public key, client-key.pem = private key
+openssl req -newkey rsa:2048 -days 3600 -nodes -keyout client-key.pem -out client-req.pem
+openssl rsa -in client-key.pem -out client-key.pem
+openssl x509 -req -in client-req.pem -days 3600 -CA ca.pem -CAkey ca-key.pem -set_serial 01 -out client-cert.pem
+###################################################################################
+
+5. mysql configureation
+    - data location: /var/lib/mysql
+
+    - configuration's location can be different in each system
+    - refer: https://dev.mysql.com/doc/refman/8.0/en/option-files.html
+    - my case: /etc/mysql/mysql.conf.d/mysqld.cnf, ~/.my.cnf
+    
+
+    [mysqld]
+    default_authentication_plugin=caching_sha2_password
+    caching_sha2_password_private_key_path=</home/frogkim/.ssh/server-key.pem>
+    caching_sha2_password_public_key_path=/home/frogkim/.ssh/server-cert.pem
+    ssl_ca=/home/frogkim/.ssh/ca.pem
+    ssl_cert=/home/frogkim/.ssh/server-cert.pem
+    ssl_key=/home/frogkim/.ssh/server-key.pem
+    - refer: https://dev.mysql.com/doc/refman/8.0/en/caching-sha2-pluggable-authentication.html
+
+
+    --ssl-ca=/home/frogkim/.ssh/ca.pem --ssl-cert=/home/frogkim/.ssh/server-cert.pem --ssl-key=/home/frogkim/.ssh/server-key.pem
+    
+    -refer: https://dev.mysql.com/blog-archive/howto-connect-to-mysql-using-a-client-certificate/
+
+6. mysql community server doesn't support ssl
+    frogkim@ubuntu-server:~$ mysql --ssl-mode=VERIFY_IDENTITY
+    ERROR 2026 (HY000): SSL connection error: SSL is required but the server doesn't support it
+
+7. remove mysql
+    - refer: https://askubuntu.com/questions/172514/how-do-i-uninstall-mysql
+    - sudo systemctl stop mysql
+    - sudo apt-get purge mysql-server mysql-client mysql-common mysql-server-core-* mysql-client-core-*
+    - sudo rm -rf /etc/mysql /var/lib/mysql
+    
+8. mssql public key problem
+    - bash> sudo apt-get update 
+    Get:9 http://us.archive.ubuntu.com/ubuntu jammy-updates/universe i386 Packages [667 kB]
+Reading package lists... Done
+W: GPG error: https://packages.microsoft.com/ubuntu/22.04/mssql-server-2022 jammy InRelease: The following signatures couldn't 
+be verified because the public key is not available: NO_PUBKEY EB3E94ADBE1229CFE
+
+    - remember the key "EB3E94ADBE1229CFE"
+    - bash> sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EB3E94ADBE1229CF
+    
+
+                    EB3E94ADBE1229CF
+                    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EB3E94ADBE1229CF
+                    sudo apt-get install mssql-server
+
+9. mssql(ubuntu) set port
+    - bash> sudo /opt/mssql/bin/mssql-conf set network.tcpport <PORT>
+    - (RESTART service) bash> sudo systemctl restart mssql-server.service
+
+10. Microsoft ODBC Driver 18 for SQL Server : SSL Provider: (verify failed)
+    - refer: https://learn.microsoft.com/en-us/answers/questions/1320162/how-to-fix-error-microsoft-odbc-driver-18-for-sql
+    - refer: https://techcommunity.microsoft.com/t5/sql-server-blog/odbc-driver-18-0-for-sql-server-released/ba-p/3169228
+    - refer: https://stackoverflow.com/questions/76093453/open-connection-generate-error-0x80040e21-microsoft-ole-db-service-components
+    /etc/ssl/openssl.cnf 
+
+11. ODBC Sample
+    - https://learn.microsoft.com/en-us/sql/connect/odbc/cpp-code-example-app-connect-access-sql-db?view=sql-server-ver16
+
+12. mssql configuration
+    - configuration file: /var/opt/mssql/mssql.conf
+    - bash> sqlcmd -S localhost,10084 -U sa -C (-C means trust this certificate)
+    - MSSM - <ip,port>, check trust certificate in the option
+
