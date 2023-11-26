@@ -1,18 +1,18 @@
-<h>TRADING PLATFORM</h>
+<h2>TRADING PLATFORM</h2><br>
     - README.md - this document<br>
     - TEST.md   - test library in console<br>
     - note.txt  - collecting troubles<br>
 
-<h3>Target System</h3>
+<h3>Target System</h3><br>
     - x64 Windows and Ubuntu<br>
     - Nvidia GPU or CPU support SSE3 or above<br>
 
-Summary
-    - This project focuses on developing libraries rather than trading itself.
-    - Libraries work for sql, network, vector computation and etc.
+<h3>Summary</h3><br>
+    - This project focuses on developing libraries rather than trading itself.<br>
+    - Libraries work for sql, network, vector computation and etc.<br>
 
-Libraries
-    - exported functions follow C style
+<h3>Libraries</h3><br>
+    - exported functions follow C style<br>
 
     1. libmath
         - target cuda toolkit's version is 12.2
