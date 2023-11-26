@@ -1,0 +1,9 @@
+// Plan:
+// AddVec: add vectors
+// MulVec: multiply vectors
+// AddMat: add matrix
+// MulMat: multiply matrix
+// Transpose matrix
+
+// Use cuda and simd
+// Simd should support AVX or SSE3

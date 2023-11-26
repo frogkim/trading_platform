@@ -1,0 +1,2 @@
+// Windows ver uses iocp
+// Linux ver uses epoll

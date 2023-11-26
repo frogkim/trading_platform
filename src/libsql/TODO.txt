@@ -1,0 +1,2 @@
+// make functions in LINUX first and
+// if it doesn't work in WINDOWS, add modified version
