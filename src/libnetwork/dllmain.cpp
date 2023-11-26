@@ -1,8 +1,12 @@
 #include "libnetwork_header.h"
 
-// global variable
-struct client_info_st client_info;
-struct server_info_st server_info;
+
+#ifdef LINUX
+// Linux
+
+// --- end --- Linux
+#else
+// Windows
 
 bool WINAPI DllMain(
     HINSTANCE hinstDLL,  // handle to DLL module
@@ -26,3 +30,6 @@ bool WINAPI DllMain(
     }
     return TRUE;  // Successful DLL_PROCESS_ATTACH.
 }
+
+#endif
+

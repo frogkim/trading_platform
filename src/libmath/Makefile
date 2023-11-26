@@ -219,12 +219,15 @@ else ifeq ($(TARGET_ARCH),ppc64le)
     CUDA_INSTALL_TARGET_DIR = targets/ppc64le-linux/
 endif
 
-# Debug build flags
-ifeq ($(dbg),1)
-      NVCCFLAGS += -g -G
-      BUILD_TYPE := debug
+# Build Type
+# make DEBUG=1
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	PRE_DEFINED_MACRO+=-DDEBUG
+	BUILD_TYPE := debug
+	CCFLAGS += -g
 else
-      BUILD_TYPE := release
+    BUILD_TYPE := release
 endif
 
 ALL_CCFLAGS :=
@@ -270,20 +273,25 @@ endif
 endif
 
 ################################################################################
-PROJECT_NAME = cudalib
-PRE_DEFINED_MACRO := LINUX;CUDALIB_EXPORT
+PROJECT_NAME = libmath
+PROJECT_FILE = $(PROJECT_NAME).so
+PRE_DEFINED_MACRO:=-DLINUX -DEXPORT
 ALL_CCFLAGS += -c -Xcompiler -fPIC --threads 0 --std=c++20
+ALL_CCFLAGS +=$(PRE_DEFINED_MACRO)
 ALL_LDFLAGS += -shared
-
-
 
 HFILES   := $(wildcard *.h)
 CUFILES  := $(wildcard *.cu)
 CFILES   := $(wildcard *.c)
 CPPFILES := $(wildcard *.cpp)
 
-SRCS := ${CUFILES} ${CFILES} ${CPPFILES}
-OBJS := ${CUFILES:.cu=.o} ${CFILES:.c=.o} ${CPPFILES:.cpp=.o}
+SRCS:=${CUFILES}
+SRCS+=${CFILES}
+SRCS+=${CPPFILES}
+
+OBJS:=${CUFILES:.cu=.o}
+OBJS+=${CFILES:.c=.o}
+OBJS+=${CPPFILES:.cpp=.o}
 
 ifeq ($(SAMPLE_ENABLED),0)
 EXEC ?= @echo "[@]"
@@ -300,7 +308,7 @@ endif
 # Target rules
 all: build
 
-build: $(PROJECT_NAME).so filemove
+build: $(PROJECT_FILE) filemove
 
 check.deps:
 ifeq ($(SAMPLE_ENABLED),0)
@@ -309,7 +317,7 @@ else
 	@echo "Sample is ready - all dependencies have been met"
 endif
 
-$(PROJECT_NAME).so: $(OBJS)
+$(PROJECT_FILE): $(OBJS)
 	$(EXEC) $(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) $(LIBRARIES) $^ -o $@ 
 
 %.o: %.c
@@ -323,15 +331,20 @@ $(PROJECT_NAME).so: $(OBJS)
 
 
 filemove:
-	$(EXEC) mkdir -p ../../obj_linux
-	$(EXEC) mv ./*.o ../../obj_linux/
-	$(EXEC) mkdir -p ../../bin_linux
-	$(EXEC) mv $(PROJECT_NAME).so ../../bin_linux/$(PROJECT_NAME).so
-	$(EXEC) cp -f $(PROJECT_NAME).h ../../include/
+# object files
+	$(EXEC) mkdir -p ../../obj/$(BUILD_TYPE)
+	$(EXEC) mv ./*.o ../../obj/$(BUILD_TYPE)
+# header file
+	$(EXEC) mkdir -p ../../include/
+	$(EXEC) cp ./$(PROJECT_NAME).h ../../include/
+# binary file
+	$(EXEC) mkdir -p ../../$(BUILD_TYPE)
+	$(EXEC) mv $(PROJECT_FILE) ../../$(BUILD_TYPE)/$(PROJECT_FILE)
 
 clean:
-	rm -f ../../bin_linux/$(PROJECT_NAME).so
+	rm -f $(PROJECT_FILE)
+	rm -f $(OBJS)
 	rm -f ../../include/$(PROJECT_NAME).h
-	rm -f ${OBJS:%=../../obj_linux/%}
-
+	rm -f $(PROJECT_FILE:%=../../$(BUILD_TYPE)/%)
+	rm -f $(OBJS:%=../../obj/$(BUILD_TYPE)/%)
 clobber: clean

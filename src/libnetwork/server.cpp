@@ -1,24 +1,24 @@
 #include "libnetwork_header.h"
-static struct server_info_st server_info;
-static struct server_st* pServer;
+
+// global variable
 bool bSetup = false;
 
 // External functions
 void ServerSetup(unsigned int buf_size, unsigned int max_iocp_threads, unsigned int max_server_capacity, unsigned int default_client_list_size)
 {
-    server_info.buffer_size = buf_size;
-    server_info.max_iocp_threads = max_iocp_threads;
-    server_info.max_capacity = max_server_capacity;
-    server_info.default_client_list_size;
+    // server_info.buffer_size = buf_size;
+    // server_info.max_iocp_threads = max_iocp_threads;
+    // server_info.max_capacity = max_server_capacity;
+    // server_info.default_client_list_size;
     bSetup = true;
 }
 
 void ServerSetup(void)
 {
-    server_info.buffer_size = 0x10000;   // 64 Kb
-    server_info.max_iocp_threads = GetCurrentProcessorNumber();
-    server_info.max_capacity = 5000;
-    server_info.default_client_list_size = 100;
+    // server_info.buffer_size = 0x10000;   // 64 Kb
+    // server_info.max_iocp_threads = GetCurrentProcessorNumber();
+    // server_info.max_capacity = 5000;
+    // server_info.default_client_list_size = 100;
     bSetup = true;
 }
 
@@ -28,29 +28,29 @@ bool ServerInit(void)
         ServerSetup();
     }
 
-    pServer = (struct server_st*) malloc(sizeof(struct server_st));
-    if (pServer == NULL) {
-        return false;
-    }
+    // pServer = (struct server_st*) malloc(sizeof(struct server_st));
+    // if (pServer == NULL) {
+    //     return false;
+    // }
 
-    pServer->mem = (void*) malloc(sizeof(byte) * server_info.max_capacity * server_info.buffer_size);
-    if (pServer->mem == NULL) {
-        safe_release(pServer);
-        return false;
-    }
-    pServer->client_list.resize(server_info.default_client_list_size);          // set enough std::vector size
-    pServer->isRun = false;
-    pServer->listen_fd = NULL;
+    // pServer->mem = (void*) malloc(sizeof(byte) * server_info.max_capacity * server_info.buffer_size);
+    // if (pServer->mem == NULL) {
+    //     safe_release(pServer);
+    //     return false;
+    // }
+    // pServer->client_list.resize(server_info.default_client_list_size);          // set enough std::vector size
+    // pServer->isRun = false;
+    // pServer->listen_fd = NULL;
     return 0;
 }
 
 bool ServerDestruct(void)
 {
-    if (!bSetup) {
-        return false;
-    }
-    safe_release(pServer->mem);
-    safe_release(pServer);
+    // if (!bSetup) {
+    //     return false;
+    // }
+    // safe_release(pServer->mem);
+    // safe_release(pServer);
     return true;
 }
 

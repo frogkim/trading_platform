@@ -1,6 +1,4 @@
 #include "libnetwork_header.h"
-static struct client_info_st client_info;
-static struct client_st* pClient;
 
 void ClientSetup(void)
 {
@@ -14,29 +12,26 @@ void ClientSetup(void)
 
 bool ClientInit(void)
 {
-    pClient = (struct client_st*)malloc(sizeof(struct client_st));
-    if (pClient == NULL) {
-        return false;
-    }
+    // pClient = (struct client_st*)malloc(sizeof(struct client_st));
+    // if (pClient == NULL) {
+    //     return false;
+    // }
 
-    pClient->buffer = (char*)malloc(sizeof(char) * client_info.buffer_size);
-    if (pClient->buffer == NULL) {
-        safe_release(pClient);
-        return false;
-    }
+    // pClient->buffer = (char*)malloc(sizeof(char) * client_info.buffer_size);
+    // if (pClient->buffer == NULL) {
+    //     safe_release(pClient);
+    //     return false;
+    // }
 
-
-
-
-    pClient->isRun = false;
-    pClient->socket = NULL;
+    // pClient->isRun = false;
+    // pClient->socket = NULL;
     return true;
 }
 
 bool ClientDestruct(void)
 {
-    safe_release(pClient->buffer);
-    safe_release(pClient);
+    // safe_release(pClient->buffer);
+    // safe_release(pClient);
     return 0;
 }
 

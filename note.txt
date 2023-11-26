@@ -108,3 +108,8 @@ be verified because the public key is not available: NO_PUBKEY EB3E94ADBE1229CFE
     - bash> sqlcmd -S localhost,10084 -U sa -C (-C means trust this certificate)
     - MSSM - <ip,port>, check trust certificate in the option
 
+13. g++ linker options
+    - L: library files' location
+    - l: library file name. It assume "lib"<filename>".so"
+    - wl,r : library path on run time
+
