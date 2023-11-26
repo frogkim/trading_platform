@@ -1,17 +1,17 @@
-<h2>TRADING PLATFORM</h2><br>
+<h2>TRADING PLATFORM</h2>
     - README.md - this document<br>
     - TEST.md   - test library in console<br>
     - note.txt  - collecting troubles<br>
 
-<h3>Target System</h3><br>
+<h3>Target System</h3>
     - x64 Windows and Ubuntu<br>
     - Nvidia GPU or CPU support SSE3 or above<br>
 
-<h3>Summary</h3><br>
+<h3>Summary</h3>
     - This project focuses on developing libraries rather than trading itself.<br>
     - Libraries work for sql, network, vector computation and etc.<br>
 
-<h3>Libraries</h3><br>
+<h3>Libraries</h3>
     - exported functions follow C style<br>
 
     1. libmath
