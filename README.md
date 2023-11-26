@@ -18,9 +18,7 @@ Libraries
     1. libmath
         - target cuda toolkit's version is 12.2
         - support CUDA, AVX, SSE3
-        - Procedures for AVX and SSE3 follow vector call convetion for x64
-        - refer: https://learn.microsoft.com/en-us/cpp/cpp/vectorcall?view=msvc-170
-
+        - Assembler is MASM for Windows and NASM for Linux
         - focuses on vector calculation
             - Complete:
             - Plan:
