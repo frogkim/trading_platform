@@ -19,7 +19,8 @@
 
 extern "C"
 {
-    LIBUTILS void writeLog(char* s);
-    LIBUTILS char* readLog(void);
+    LIBUTILS int libutils_init(void);
+    LIBUTILS int libutils_deinit(void);
+    LIBUTILS void libutils_write_log(char* s);
 }
 #endif // end LIBUTILS_H_

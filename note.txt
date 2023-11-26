@@ -113,3 +113,12 @@ be verified because the public key is not available: NO_PUBKEY EB3E94ADBE1229CFE
     - l: library file name. It assume "lib"<filename>".so"
     - wl,r : library path on run time
 
+14. utils
+    - I tried to use only C++ standard library. I used thread and mutex which are provided by C++.
+    - However, i had to use API provided by OS to use shared memory for IPC and event.
+// 
+// Windows shared memory
+// https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga
+// https://learn.microsoft.com/en-us/windows/win32/memory/creating-named-shared-memory
+// Windows event example
+// https://learn.microsoft.com/en-us/windows/win32/sync/using-event-objects
