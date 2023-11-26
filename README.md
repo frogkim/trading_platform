@@ -1,11 +1,11 @@
-TRADING PLATFORM
-    - README.md - this document
-    - TEST.md   - test library in console
-    - note.txt  - collecting troubles
+<h>TRADING PLATFORM</h>
+    - README.md - this document<br>
+    - TEST.md   - test library in console<br>
+    - note.txt  - collecting troubles<br>
 
-Target System
-    - x64 Windows and Ubuntu
-    - Nvidia GPU or CPU support SSE3 or above
+<h3>Target System</h3>
+    - x64 Windows and Ubuntu<br>
+    - Nvidia GPU or CPU support SSE3 or above<br>
 
 Summary
     - This project focuses on developing libraries rather than trading itself.
