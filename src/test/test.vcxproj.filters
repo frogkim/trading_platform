@@ -3,4 +3,7 @@
   <ItemGroup>
     <ClCompile Include="test.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="test_libutils.txt" />
+  </ItemGroup>
 </Project>

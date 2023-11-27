@@ -4,17 +4,70 @@
 // --- end --- LINUX
 #else
 // Windows
-HANDLE evts[2];
+
 // --- end --- Windows
 #endif  
 
 // internal functions
+int libutils_init(void)
+{
+    int ret;
+    ret = shared_memory_init();
+    if (ret) {
+        return ret;
+    }
+
+    ret = global_variable_init();
+    if (ret) {
+        return ret;
+    }
+
+    ret = log_thread_init();
+    if (ret) {
+        return ret;
+    }
+    return ret;
+}
+
+int libutils_deinit(void)
+{
+    SetEvent(evts[0]);
+    if (g_thread_log.joinable()) {
+        g_thread_log.join();
+    }
+    CloseHandle(evts[0]);
+    CloseHandle(evts[1]);
+    if (g_p_ipc_variables == NULL) {
+        return 2;
+    }
+
+    if (g_p_ipc_variables->mutex == nullptr) {
+        return 1;
+    }
+
+    g_p_ipc_variables->mutex->lock();
+    g_p_ipc_variables->n_users--;
+    g_p_ipc_variables->mutex->unlock();
+
+    // release ipc mutex
+    if (g_p_ipc_variables->n_users == 0) {
+        delete g_p_ipc_variables->mutex;
+    }
+
+    if (g_p_ipc_variables->mutex != nullptr) {
+        return -1;
+    }
+    return 0;
+}
+
 int shared_memory_init(void)
 {
 #ifdef LINUX
     // --- end --- LINUX
 #else
     // Windows
+    g_pid = GetCurrentProcessId();
+    bool b_already_created = false;
     HANDLE h_shared_memory = (void*)CreateFileMapping(
         INVALID_HANDLE_VALUE,           // use paging file
         NULL,                           // default security
@@ -27,11 +80,19 @@ int shared_memory_init(void)
         return GetLastError();
     }
 
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+        b_already_created = true;
+    }
+
     g_p_ipc_variables = (p_ipc_variables_t)MapViewOfFile(h_shared_memory,   // handle to map object
         FILE_MAP_ALL_ACCESS, // read/write permission
         0,
         0,
         size_shared_memory);
+    if (!b_already_created && g_p_ipc_variables == nullptr) {
+        return GetLastError();
+    }
+    ZeroMemory(g_p_ipc_variables, sizeof(ipc_variables_t));
     CloseHandle(h_shared_memory);
     if (g_p_ipc_variables == nullptr) {
         return GetLastError();
@@ -44,8 +105,9 @@ int shared_memory_init(void)
 
 int global_variable_init(void)
 {
-    if (g_p_ipc_variables->n_users > 0) {
+    if (g_p_ipc_variables->mutex == nullptr) {
         g_p_ipc_variables->mutex = new std::mutex;
+        g_p_ipc_variables->n_users = 0;
     }
 
     if (g_p_ipc_variables->mutex == nullptr) {
@@ -80,23 +142,22 @@ int global_variable_init(void)
 
 int log_thread_init(void)
 {
-    g_thread_log = std::thread(thread_function_log);
-    //try {
-    //    g_thread_log = std::thread(thread_function_log);
-    //}
-    //catch (std::system_error error_code) {
-    //    if (error_code.code() == std::errc::resource_unavailable_try_again) {
-    //        // known exception
-    //        return 1;
-    //    } else {
-    //        // unknown exception
-    //        return -1;
-    //    }
-    //}
-    //catch (std::exception e) {
-    //    // unknown exception
-    //    return -1;
-    //}
+    try {
+        g_thread_log = std::thread(thread_function_log);
+    }
+    catch (std::system_error error_code) {
+        if (error_code.code() == std::errc::resource_unavailable_try_again) {
+            // known exception
+            return 1;
+        } else {
+            // unknown exception
+            return -1;
+        }
+    }
+    catch (std::exception e) {
+        // unknown exception
+        return -1;
+    }
     return 0;
 }
 
@@ -105,19 +166,22 @@ void thread_function_log(void)
     DWORD dwWaitResult;
 
     do {
-        dwWaitResult = WaitForMultipleObjects(2, evts, INFINITE, true);
-        if (dwWaitResult != WAIT_OBJECT_0) {
+        dwWaitResult = WaitForMultipleObjects(2, evts, false, INFINITE);
+        if (dwWaitResult == WAIT_OBJECT_0) {    // evts[0] - end event
             break;
         }
-        write_log();
-    } while (dwWaitResult);
+        if (dwWaitResult == WAIT_OBJECT_0 + 1) { // evts[1] - write log event
+            write_log();
+        }
+    } while (true);
 }
 
 void write_log(void)
 {
     char buf[100];
     struct timespec ts;
-
+    std::string input_message;
+    std::fstream fs;
     while (g_deque_log.size() > 0)
     {
         // Use internal lock - retrieve from queue. 
@@ -131,23 +195,25 @@ void write_log(void)
         // get current time
         int ret = timespec_get(&ts, TIME_UTC);
         double diff = (double) (ts.tv_nsec - data.ts.tv_nsec) / 1000.0;
-
-        std::string input_message;
+        
+        input_message.clear();
         input_message += '[';
         input_message += buf;
         input_message += "] pid: ";
-        input_message += data.pid;
+        std::sprintf(buf, "%4d", g_pid);
+        input_message += buf;
+        input_message += " - ";
         input_message += data.message;
         input_message += " Diff: ";
         std::sprintf(buf, "%.3f", diff);
         input_message += buf;
-        input_message += " ms";
+        input_message += " ms\n";
         
         g_p_ipc_variables->mutex->lock();
-        g_File.open("log.txt", std::fstream::in | std::fstream::out | std::fstream::app);
-        g_File << input_message;
-        g_File.close();
+        fs.open("log.txt", std::fstream::out | std::fstream::app);
+        fs << input_message;
+        fs.close();
         g_p_ipc_variables->mutex->unlock();
     }
-    ResetEvent(h_event_log);
+    ResetEvent(evts[1]);
 }

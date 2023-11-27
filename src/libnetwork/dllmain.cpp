@@ -7,11 +7,7 @@
 // --- end --- Linux
 #else
 // Windows
-
-bool WINAPI DllMain(
-    HINSTANCE hinstDLL,  // handle to DLL module
-    DWORD fdwReason,     // reason for calling function
-    LPVOID lpvReserved)  // reserved
+bool WINAPI DllMain(HINSTANCE hinstDLL,  DWORD fdwReason, LPVOID lpvReserved)
 {
     // Perform actions based on the reason for calling.
     switch (fdwReason)
@@ -30,6 +26,5 @@ bool WINAPI DllMain(
     }
     return TRUE;  // Successful DLL_PROCESS_ATTACH.
 }
-
 #endif
 

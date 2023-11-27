@@ -18,9 +18,8 @@
 
 extern "C"
 {
-    LIBUTILS int libutils_init(void);
-    LIBUTILS int libutils_deinit(void);
-    LIBUTILS void libutils_write_log(const char* message_c, unsigned int pid, void* time_spec);
+
+    LIBUTILS void libutils_write_log(const char* message_c, void* time_spec);
 
 #ifdef DEBUG
     #ifdef LINUX

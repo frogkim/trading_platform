@@ -30,9 +30,8 @@ typedef struct _ipc_variables_t {
 
 typedef struct _input_data {
     char                message[256];
-    unsigned int        pid; 
     struct timespec     ts;
-    _input_data(const char* m, unsigned int p, void* p_ts) : pid(p)
+    _input_data(const char* m, void* p_ts)
     {
         memcpy(message, m, sizeof(char)*256);
         memcpy(&ts, p_ts, sizeof(struct timespec));
@@ -40,6 +39,8 @@ typedef struct _input_data {
 } input_data_t;
 
 // internal functions
+int libutils_init(void);
+int libutils_deinit(void);
 int shared_memory_init(void);
 int global_variable_init(void);
 int log_thread_init(void);
@@ -47,11 +48,11 @@ void thread_function_log(void);
 void write_log(void);
 
 // global variable
+extern unsigned int             g_pid;
 extern p_ipc_variables_t        g_p_ipc_variables;
 extern std::thread              g_thread_log;
 extern std::queue<input_data_t> g_deque_log;
 extern std::mutex               g_mutex_log;
-extern std::fstream             g_File;
 
 #ifdef LINUX
 
