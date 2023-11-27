@@ -6,6 +6,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libutils.cpp" />
+    <ClCompile Include="libutils_debug.cpp" />
+    <ClCompile Include="libutils_internal.cpp" />
+    <ClCompile Include="libutils_dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />

@@ -45,11 +45,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(ProjectDir)..\..\bin_debug</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin_debug\</OutDir>
     <IntDir>$(ProjectDir)..\..\obj\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(ProjectDir)..\..\bin</OutDir>
+    <OutDir>$(ProjectDir)..\..\bin\</OutDir>
     <IntDir>$(ProjectDir)..\..\obj\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -96,6 +96,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="libutils.cpp" />
+    <ClCompile Include="libutils_debug.cpp" />
+    <ClCompile Include="libutils_dllmain.cpp" />
+    <ClCompile Include="libutils_internal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />
