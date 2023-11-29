@@ -60,10 +60,10 @@ extern LIBNETWORK unsigned int __stdcall ServerRecv(unsigned int index, char* bu
 extern LIBNETWORK void __stdcall ServerSendAsync(unsigned int index, char* buf);
 extern LIBNETWORK void __stdcall ServerRecvAsync(unsigned int index, char* buf);
 
-//extern LIBNETWORK void __stdcall ServerSetBufferSize(unsigned int value);
-//extern LIBNETWORK void __stdcall ServerSetCapacity(unsigned int value);
-//extern LIBNETWORK void __stdcall ServerSetNumberIocpThreads(unsigned int value);
-//extern LIBNETWORK void __stdcall ServerSetNumberIocpPortThreads(unsigned int value);
+extern LIBNETWORK void __stdcall ServerSetBufferSize(unsigned int value);
+extern LIBNETWORK void __stdcall ServerSetCapacity(unsigned int value);
+extern LIBNETWORK void __stdcall ServerSetNumberIocpThreads(unsigned int value);
+extern LIBNETWORK void __stdcall ServerSetNumberIocpPortThreads(unsigned int value);
 // Client functions
 extern LIBNETWORK unsigned int __stdcall ClientInit(void);
 extern LIBNETWORK unsigned int __stdcall ClientDestruct(void);

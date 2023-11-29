@@ -122,3 +122,6 @@ be verified because the public key is not available: NO_PUBKEY EB3E94ADBE1229CFE
 // https://learn.microsoft.com/en-us/windows/win32/memory/creating-named-shared-memory
 // Windows event example
 // https://learn.microsoft.com/en-us/windows/win32/sync/using-event-objects
+
+15. A dll file written by C
+    - To load dll, use LoadLibrary and GetProcAddress

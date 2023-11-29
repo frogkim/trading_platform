@@ -1,15 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="libnetwork.h" />
-    <ClInclude Include="libnetwork_header.h" />
+    <ClInclude Include="libnetwork_queue.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="libnetwork_header.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="libnetwork.h">
+      <Filter>headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="server.cpp" />
-    <ClCompile Include="client.cpp" />
-    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="server.c" />
+    <ClCompile Include="client.c" />
+    <ClCompile Include="libnetwork_dllmain.c" />
+    <ClCompile Include="libnetwork_queue.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{e38b1ce4-44be-4e0b-a076-8fc6f29b8832}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -1,5 +1,22 @@
 #include "libnetwork_header.h"
 
+struct client_st {
+    BOOL isRun;
+#ifdef LINUX
+    int     socket;
+#else   // Windows
+    SOCKET  socket;
+#endif
+    char* buffer;
+};
+
+struct client_info_st {
+    char ip;
+    uint32_t buffer_size;
+    uint32_t MAX_IOCP_THREADS;
+};
+
+
 void ClientSetup(void)
 {
     //char ip[16];
@@ -10,7 +27,7 @@ void ClientSetup(void)
     //unsigned int MAX_IOCP_THREADS = 1;
 }
 
-bool ClientInit(void)
+unsigned int ClientInit(void)
 {
     // pClient = (struct client_st*)malloc(sizeof(struct client_st));
     // if (pClient == NULL) {
@@ -25,39 +42,39 @@ bool ClientInit(void)
 
     // pClient->isRun = false;
     // pClient->socket = NULL;
-    return true;
+    return TRUE;
 }
 
-bool ClientDestruct(void)
+unsigned int ClientDestruct(void)
 {
     // safe_release(pClient->buffer);
     // safe_release(pClient);
     return 0;
 }
 
-bool ClientConnect(void)
+unsigned int ClientConnect(void)
 {
     return 0;
 }
-bool ClientDisconnect(void)
+unsigned int ClientDisconnect(void)
 {
     return 0;
 }
-bool ClientStop(void)
+unsigned int ClientStop(void)
 {
     return 0;
 }
-bool ClientSend(unsigned int index, char* buf)
+unsigned int ClientSend(char* buf)
 {
     return 0;
 }
-bool ClientRecv(unsigned int index, char* buf)
+unsigned int ClientRecv(char* buf)
 {
     return 0;
 }
-void ClientSendAsync(unsigned int index, char* buf)
+void ClientSendAsync(char* buf)
 {
 }
-void ClientRecvAsync(unsigned int index, char* buf)
+void ClientRecvAsync(char* buf)
 {
 }

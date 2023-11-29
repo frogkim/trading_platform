@@ -1,13 +1,11 @@
 #include "libnetwork_header.h"
-
-
 #ifdef LINUX
 // Linux
 
 // --- end --- Linux
 #else
 // Windows
-bool WINAPI DllMain(HINSTANCE hinstDLL,  DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL,  DWORD fdwReason, LPVOID lpvReserved)
 {
     // Perform actions based on the reason for calling.
     switch (fdwReason)
