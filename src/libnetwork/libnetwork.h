@@ -52,6 +52,7 @@ extern LIBNETWORK unsigned int __stdcall ServerInit(void);
 extern LIBNETWORK void __stdcall ServerDestruct(int step);
 extern LIBNETWORK void __stdcall ServerRun(void);
 extern LIBNETWORK void __stdcall ServerStop(void);
+extern LIBNETWORK void __stdcall ServerTerminate(void);
 extern LIBNETWORK unsigned int __stdcall ServerRunNode(unsigned int index);
 extern LIBNETWORK unsigned int __stdcall ServerStopNode(unsigned int index);
 extern LIBNETWORK unsigned int __stdcall ServerRemoveNode(unsigned int index);

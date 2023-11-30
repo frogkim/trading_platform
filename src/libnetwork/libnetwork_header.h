@@ -23,25 +23,18 @@
 #include <tchar.h>
 #define ALIGN8 __declspec(align(8))
 #define safe_release(p) if(p) free(p)
-#define SIZE_BUFFER 8192
 
 ALIGN8 typedef struct _node_st {
     uint32_t is_stop;
+    uint32_t index;
     SOCKET  socket;
-    char    buffer[SIZE_BUFFER];
+    WSABUF  wsabuf;
     uint32_t n_recv;
     uint32_t flag;
     WSAOVERLAPPED wol;
+    struct timespec ts;                     // timespec_get(&ts, TIME_UTC);
     void*   (*callback)(void*);
 } node_t, * p_node_t;
-
-ALIGN8 typedef struct _buf_st {
-    uint32_t index_socket;
-    SOCKET socket;
-    struct timespec ts;         // timespec_get(&ts, TIME_UTC);
-    char   buffer[SIZE_BUFFER];
-} buf_t, * pbuf_t;
-
 // --- end --- Windows
 #endif
 

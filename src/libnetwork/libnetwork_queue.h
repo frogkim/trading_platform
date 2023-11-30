@@ -7,10 +7,11 @@ typedef struct _queue_st {
     unsigned int size;
     unsigned int data_size;
     void (*set_tail)(struct _queue_st*, void*);
-    void (*get_front)(struct _queue_st*, void*);
+    void (*get_front_or_null)(struct _queue_st*, void*);
+    // buffer
 #ifdef LINUX
 #else
-    __declspec(align(8)) int* buffer;
+    __declspec(align(8)) void* buffer;
 #endif
 } queue_t, * p_queue_t;
 

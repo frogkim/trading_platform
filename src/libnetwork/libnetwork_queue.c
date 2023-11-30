@@ -9,7 +9,7 @@
 #define false 0
 
 static void  _set_tail(p_queue_t, void*);
-static void  _get_front(p_queue_t, void*);
+static void  _get_front_or_null(p_queue_t, void*);
 
 bool init_queue(p_queue_t this, uint32_t capacity, uint32_t data_size)
 {
@@ -23,7 +23,7 @@ bool init_queue(p_queue_t this, uint32_t capacity, uint32_t data_size)
     this->size = 0;
     this->data_size = data_size;
     this->set_tail = _set_tail;
-    this->get_front = _get_front;
+    this->get_front_or_null = _get_front_or_null;
     uint64_t size_assign = (uint64_t)data_size * (uint64_t)capacity;
     this->buffer = malloc(size_assign);
     return (this->buffer != NULL) ? true : false;
@@ -38,7 +38,7 @@ void deinit_queue(p_queue_t this)
 
 void _set_tail(p_queue_t this, void* data)
 {
-    memcpy(data, &this->buffer[this->tail], this->data_size);
+    memcpy(&this->buffer+(this->data_size * this->tail), data, this->data_size);
     this->tail++;
     this->size++;
 
@@ -47,13 +47,14 @@ void _set_tail(p_queue_t this, void* data)
     }
 }
 
-void _get_front(p_queue_t this, void* data)
+void _get_front_or_null(p_queue_t this, void* data)
 {
     if (this->size == 0) {
         data = NULL;
         return;
     }
-    memcpy(data, &this->buffer[this->front], this->data_size);
+    memcpy(data, &this->buffer + (this->data_size * this->front), this->data_size);
+    //TODO: set zero?
     this->front++;
     this->size--;
     if (this->front == this->capacity) {
