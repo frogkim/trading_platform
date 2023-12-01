@@ -25,4 +25,7 @@
       <UniqueIdentifier>{e38b1ce4-44be-4e0b-a076-8fc6f29b8832}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="libnetwork_spilock.asm" />
+  </ItemGroup>
 </Project>

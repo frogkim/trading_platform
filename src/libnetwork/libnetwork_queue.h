@@ -1,5 +1,17 @@
 #ifndef LIBNETWORK_QUEUE
 #define LIBNETWORK_QUEUE
+/*
+        Safe thread queue
+
+        what kind of mothod will be used?
+        When a user store data in queue, parameters copied in queue's buffer.
+        When a user retrieve data from queue, paramters are copied from queue's buffer.
+        Data parameter sometimes can be too large to use spin_lock. The worst scenario is like this. 
+        When a user tried to retrieve a data, but the data is under copying, then it will make a crush.
+
+        In this queue, CRITICAL SECTION is used for Windows OS and Mutex for Linux system.
+*/
+
 typedef struct _queue_st {
     unsigned int front;
     unsigned int tail;

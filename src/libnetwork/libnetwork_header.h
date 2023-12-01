@@ -33,12 +33,13 @@ ALIGN8 typedef struct _node_st {
     uint32_t flag;
     WSAOVERLAPPED wol;
     struct timespec ts;                     // timespec_get(&ts, TIME_UTC);
-    void*   (*callback)(void*);
+    LPWSAOVERLAPPED_COMPLETION_ROUTINE(*_func_wsarecv_callback)(DWORD,DWORD,LPWSAOVERLAPPED,DWORD);
 } node_t, * p_node_t;
 // --- end --- Windows
 #endif
 
-
-
+typedef __volatile unsigned long long KEYHOLDER;
+extern void spin_lock(KEYHOLDER* keyholder);
+extern void spin_unlock(KEYHOLDER* keyholder);
 
 #endif // LIBNETWORK_HEADER_H_

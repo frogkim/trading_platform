@@ -4,7 +4,6 @@
 #ifdef LINUX
 int     socket;
 #else
-#include <wdm.h>
 
 // --- Windows ---
 SOCKET  g_listen;           
@@ -12,7 +11,6 @@ HANDLE  g_h_listen_thread    = NULL;
 HANDLE	g_h_iocp             = NULL;
 PTP_POOL g_h_iocp_thread_pool = NULL;
 PTP_CLEANUP_GROUP g_h_iocp_thread_pool_cleanupgroup = NULL;
-PTP_WORK g_h_iocp_thread_pool_work = NULL;
 
 SYSTEM_INFO g_info;
 
@@ -29,8 +27,9 @@ bool b_is_terminate = false;
 
 // clients
 node_t* clients;
-uint32_t size_client = 0;
-uint32_t capacity_clients = 4000;
+uint32_t clients_size;
+char* _clients_buffer;
+
 
 // queues
 queue_t q_seats_int32;
@@ -43,17 +42,18 @@ CRITICAL_SECTION g_cs_sends;
 
 HANDLE g_evt_recvs;
 HANDLE g_evt_sends;
-KSPIN_LOCK g_spinlock_recvs;
-KSPIN_LOCK g_spinlock_sends;
+KEYHOLDER g_spinlock_recvs;
+KEYHOLDER g_spinlock_sends;
 
+uint32_t capacity_clients = 4000;
 uint32_t capacity_seats = 4000;
 uint32_t capacity_recvs = 10000;
 uint32_t capacity_sends = 10000;
 
-// queue for seats has only uint32s.
+// buffer_size
+uint32_t size_buffer_clients_max = 8192;
 uint32_t size_buffer_recvs_max = 8192;
 uint32_t size_buffer_sends_max = 8192;
-
 
 // internal function declaration
 bool set_global(void);
@@ -63,9 +63,9 @@ void close_all_sockets();
 void release_all(void);
 
 uint32_t __stdcall func_thread_accept(void* pParam);
-uint32_t __stdcall CALLBACK func_thread_iocp(void* pParam);
-uint32_t __stdcall func_recvs_queue(void* pParam);
-uint32_t __stdcall func_sends_queue(void* pParam);
+uint32_t __stdcall CALLBACK func_thread_iocp_work(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work);
+uint32_t __stdcall func_recvs_queue(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work);
+uint32_t __stdcall func_sends_queue(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work);
 
 enum {
     close_all,
@@ -99,6 +99,12 @@ void __stdcall ServerDestruct(int step)
 {
     switch (step) {  // intended cascade
     case close_all:
+        spin_lock(&g_spinlock_recvs);
+        ResetEvent(g_evt_recvs);
+        spin_unlock(&g_spinlock_recvs);
+        spin_lock(&g_spinlock_sends);
+        ResetEvent(g_evt_sends);
+        spin_unlock(&g_spinlock_sends);
         CloseThreadpoolCleanupGroupMembers(g_h_iocp_thread_pool_cleanupgroup, FALSE, NULL);
     case close_iocp_threadpool_cleanupgroup_members:
         CloseThreadpoolCleanupGroup(g_h_iocp_thread_pool_cleanupgroup);
@@ -221,18 +227,27 @@ bool set_global(void)
         release_all();
         return false;
     }
-    memset(clients, 0, sizeof(node_t) * capacity_clients);
+    memset(clients, 0, sizeof(node_t)* capacity_clients);
+
+    _clients_buffer = (char*) malloc(sizeof(char) * size_buffer_clients_max * capacity_clients);
+    if (_clients_buffer == NULL) {
+        release_all();
+        return false;
+    }
+    memset(_clients_buffer, 0, sizeof(char) * size_buffer_clients_max* capacity_clients);
+
+    clients_size = 0;
     for (uint32_t i = 0; i < capacity_clients; i++) {
         clients[i].index = i;
+        clients[i].wsabuf.buf = &_clients_buffer[size_buffer_clients_max * i];
     }
     
     InitializeCriticalSection(&g_cs_seats);
     InitializeCriticalSection(&g_cs_recvs);
     InitializeCriticalSection(&g_cs_sends);
 
-    KeInitializeSpinLock();
-    KSPIN_LOCK g_spinlock_recvs;
-    KSPIN_LOCK g_spinlock_sends;
+    g_spinlock_recvs = 0;
+    g_spinlock_sends = 0;
     g_evt_recvs = CreateEvent(NULL, TRUE, FALSE, TEXT("recvs_event"));
     g_evt_sends = CreateEvent(NULL, TRUE, FALSE, TEXT("sends_event"));
     
@@ -310,13 +325,15 @@ bool set_iocp(void)
         ServerDestruct(close_iocp_threadpool_cleanupgroup);
         return false;
     }
-    g_h_iocp_thread_pool_work = CreateThreadpool(func_thread_iocp, NULL, &CallBackEnviron);
-    if (g_h_iocp_thread_pool_work == NULL) {
-        ServerDestruct(close_iocp_threadpool_work);
-        return false;
+
+    for (int i = 0; i < n_iocp_threads; i++) {
+        PTP_WORK g_h_iocp_thread_pool_work = CreateThreadpoolWork(func_thread_iocp_work, NULL, &CallBackEnviron);
+        if (g_h_iocp_thread_pool_work == NULL) {
+            ServerDestruct(close_iocp_threadpool_work);
+            return false;
+        }
+        SubmitThreadpoolWork(g_h_iocp_thread_pool_work);
     }
-    // start thread pool
-    SubmitThreadpoolWork(g_h_iocp_thread_pool_work);
 
     //--- Create Timer
     //PTP_TIMER_CALLBACK timercallback = func_callback_timer;
@@ -336,8 +353,6 @@ void release_all()
     DeleteCriticalSection(&g_cs_seats);
     DeleteCriticalSection(&g_cs_recvs);
     DeleteCriticalSection(&g_cs_sends);
-    DeleteCriticalSection(&g_cs_evt_recvs);
-    DeleteCriticalSection(&g_cs_evt_sends);
 
     safe_release(clients);
     deinit_queue(&q_sends_node);
@@ -394,8 +409,11 @@ uint32_t __stdcall func_thread_accept(void* pParam)
     return 0;
 }
 
-uint32_t __stdcall CALLBACK func_thread_iocp(void* pParam)
+uint32_t __stdcall CALLBACK func_thread_iocp_work(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work)
 {
+    UNREFERENCED_PARAMETER(instance);
+    UNREFERENCED_PARAMETER(Work);
+
     DWORD			size_transfer = 0;
     node_t*         client = NULL;
     LPWSAOVERLAPPED	p_wol = NULL;
@@ -411,10 +429,11 @@ uint32_t __stdcall CALLBACK func_thread_iocp(void* pParam)
         if (result == true) {
             if (size_transfer > 0) {
                 // normal. create iocp again
-                EnterCriticalSection(&g_cs_recvs);
+                // queue has its own critical section
                 q_recvs_node.set_tail(&q_sends_node, &client);
-                LeaveCriticalSection(&g_cs_recvs);
+                spin_lock(g_evt_recvs);
                 SetEvent(g_evt_recvs);
+                spin_unlock(g_evt_recvs);
                 WSARecv(client->socket, &client->wsabuf, 1, &client->n_recv, &client->flag, &client->wol, NULL);
                 // TODO: when WSARecv failed                    
                 // WSAGetLastError() != WSA_IO_PENDING
@@ -439,8 +458,11 @@ uint32_t __stdcall CALLBACK func_thread_iocp(void* pParam)
     return 0;
 }
 
-uint32_t __stdcall func_recvs_queue(void* pParam)
+uint32_t __stdcall CALLBACK func_recvs_queue(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work)
 {
+    UNREFERENCED_PARAMETER(instance);
+    UNREFERENCED_PARAMETER(pParam);
+    UNREFERENCED_PARAMETER(Work);
     DWORD dw_event;
     node_t client;
 
@@ -450,30 +472,47 @@ uint32_t __stdcall func_recvs_queue(void* pParam)
             break;
         }
         while (true) {
-            EnterCriticalSection(&g_cs_seats);
             if (q_recvs_node.size > 0) {
                 q_recvs_node.get_front_or_null(&q_recvs_node, &client);
+#ifdef DEBUG
+                q_sends_node.set_tail(&q_sends_node, &client);
+#endif // DEBUG
             } else {
                 break;
             }
-            LeaveCriticalSection(&g_cs_seats);
-
+            spin_lock(&g_spinlock_recvs);
+            ResetEvent(g_evt_recvs);
             SetEvent(g_evt_sends);
+            spin_unlock(&g_spinlock_recvs);
         }
-        ResetEvent(g_evt_recvs);
     }
     return 0;
 }
-uint32_t __stdcall func_sends_queue(void* pParam)
+uint32_t __stdcall func_sends_queue(PTP_CALLBACK_INSTANCE instance, void* pParam, PTP_WORK Work)
 {
+    UNREFERENCED_PARAMETER(instance);
+    UNREFERENCED_PARAMETER(pParam);
+    UNREFERENCED_PARAMETER(Work);
+
     DWORD dw_event;
+    node_t client;
     while (true) {
         dw_event =WaitForSingleObject(g_evt_sends, INFINITE);
         if (b_is_terminate) {
             break;
         }
+        while (true) {
+            if (q_sends_node.size > 0) {
+                q_sends_node.get_front_or_null(&q_recvs_node, &client);
+#ifdef DEBUG
+
+#endif // DEBUG
 
 
+            spin_lock(&g_spinlock_sends);
+            ResetEvent(g_evt_sends);
+            spin_unlock(&g_spinlock_sends);
+        }
     }
     
     return 0;
