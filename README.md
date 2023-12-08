@@ -40,12 +40,25 @@
 ![Architecture](https://github.com/frogkim/pictures/blob/main/trading_platform_00.png)
 <h3>Target System</h3>
     1. Server <br>
-    - Ubuntu<br>
-    - Nvidia GPU or CPU support SSE3 or above<br>
+    - Ubuntu 22.04<br>
+    - Nvidia TESLA P40 1 ea
     2. Client <br>
-    - x64 Windows<br>
+    - x64 Windows 11<br>
     - IA64 architecture CPU supporting SSE3 or above<br>
 <h3>1. Broker Server and Server</h3>
     - libnetwork, libfixprotocol<br>
     - Between this relationship, the server will be a client for Broker's server.<br>
     - Broker's server request its client to follow FIX 4.4<br>
+<h3>2. Server and Database</h3>
+    - libsql<br>
+    - Database is SQL Server 16.x for ubuntu<br>
+    - ODBC Driver 18.x<br>
+<h3>3. Broker Server and Server</h3>
+    - libnetwork<br>
+    - Server needs to support multiple clients.
+    
+<h3>4. Miscellaneous</h3>
+    - libmath, libutils
+    - libmath provides basic vector calcuations.
+    - libmath will support CUDA
+    - libutils support data structures and log
