@@ -57,8 +57,11 @@
     - libnetwork<br>
     - Server needs to support multiple clients.
     
-<h3>4. Miscellaneous</h3>
-    - libmath, libutils
-    - libmath provides basic vector calcuations.
-    - libmath will support CUDA
-    - libutils support data structures and log
+<h2>Miscellaneous</h2>
+    - libmath, libutils<br>
+    - libmath provides basic vector calcuations.<br>
+    - libmath will support CUDA<br>
+    - libutils support data structures and log<br>
+    - libsql will support only linux
+    - libnetwork will support both Windows and Linux. However, managing network device is depenedent on Operating Systems. To use API provided by OS, this library cannot avoid redundant writing.
+    - libmath, libfixprotocol, libutils support both Windows and Linux. However, these codes will be written just once. They should be independant to Operating System as possible.
