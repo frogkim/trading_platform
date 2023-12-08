@@ -3,6 +3,11 @@
     - TEST.md   - test library in console<br>
     - note.txt  - collecting troubles<br>
 
+![Architecture](https://github.com/frogkim/pictures/blob/main/trading_platform_00.png)
+
+
+
+
 <h3>Target System</h3>
     - x64 Windows and Ubuntu<br>
     - Nvidia GPU or CPU support SSE3 or above<br>
