@@ -41,7 +41,7 @@
 <h3>Target System</h3>
     1. Server <br>
     - Ubuntu 22.04<br>
-    - Nvidia TESLA P40 1 ea
+    - Nvidia TESLA P40 1 ea<br>
     2. Client <br>
     - x64 Windows 11<br>
     - IA64 architecture CPU supporting SSE3 or above<br>
